@@ -27,7 +27,7 @@ const app=express();
 app.use(express.json());
 app.use(cors());
 
-app.get('/',(req, res)=>{res.send(database.users)})
+app.get('/',(req, res)=>{res.send('it is working')})
 app.post('/signin',handleSignIn(db, bcrypt))
 app.post('/register', (req, res)=>{handleRegister(req, res, db, bcrypt)}) //Dependency Injection
 app.get('/profile/:id',(req, res)=>{handleProfileGet(req, res, db)})
