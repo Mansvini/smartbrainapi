@@ -10,7 +10,7 @@ import {handleImage, handleApiCall} from './controllers/image.js';
 const db=knex({
   client: 'pg',
   connection: {
-    host : '127.0.0.1', //where database lives
+    host : 'postgresql-symmetrical-71786', //where database lives
     port : 5432,
     user : 'mansviniaggarwal',
     password : '',
