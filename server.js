@@ -2,10 +2,16 @@ import express from 'express';
 import cors from 'cors';
 import knex from 'knex';
 import bcrypt from 'bcrypt-nodejs';
-import handleRegister from './controllers/register.js';
-import handleSignIn from './controllers/signin.js';
-import handleProfileGet from './controllers/profile.js';
+import register from './controllers/register.js';
+import {signinAuthentication} from './controllers/signin.js';
+import {handleProfileGet, handleProfileUpdate} from './controllers/profile.js';
 import {handleImage, handleApiCall} from './controllers/image.js';
+import morgan from 'morgan';
+import requireAuth from './controllers/authorization.js';
+import handleSignOut from './controllers/signout.js';
+import redis from 'redis';
+
+const redisClient = redis.createClient({url: process.env.REDIS_URL});
 
 const db=knex({
   client: 'pg',
@@ -17,22 +23,22 @@ const db=knex({
   }
 });
 
-// db.select('*').from('users').then (data=>{
-// 	console.log(data);
-// })
-
 const app=express();
-
 app.use(express.json());
+app.use(morgan('combined'))
 app.use(cors());
 
 app.get('/',(req, res)=>{res.send('it is working')})
-app.post('/signin',handleSignIn(db, bcrypt))
-app.post('/register', (req, res)=>{handleRegister(req, res, db, bcrypt)}) //Dependency Injection
-app.get('/profile/:id',(req, res)=>{handleProfileGet(req, res, db)})
-app.put('/image',(req, res)=>{handleImage(req, res, db)})
-app.post('/imageurl',(req, res)=>{handleApiCall(req, res)})
+app.post('/signin', signinAuthentication(db, bcrypt)) //Dependency Injection
+app.post('/register', register(db, bcrypt))
+app.get('/profile/:id', requireAuth, (req, res)=>{handleProfileGet(req, res, db)})
+app.post('/profile/:id', requireAuth, (req, res)=>{handleProfileUpdate(req, res, db)})
+app.put('/image', requireAuth, (req, res)=>{handleImage(req, res, db)})
+app.post('/imageurl', requireAuth, (req, res)=>{handleApiCall(req, res)})
+app.put('/signout', requireAuth, (req, res)=>{handleSignOut(req, res)})
 
-app.listen(process.env.PORT|| 3000,()=>{
-	console.log(`app is running on port ${process.env.PORT}`);
+app.listen(3000,()=>{
+	console.log(`app is running on port 3000`);
 });
+
+export default redisClient;
